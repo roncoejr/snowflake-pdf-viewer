@@ -7,18 +7,15 @@ import os
 import cgi
 import json
 import requests
-# import MySQLdb
 
 
 PORT_NUMBER = 8091
 OUTPUT_MODE = 'json'
 
 class coeSnowDemoHandler(BaseHTTPRequestHandler):
-	#Handle GET requests
-	def do_GET(self):
-		with open('connection_params.json', 'r') as f_params:
-			f_data=f_params.read()
-		c_params = json.loads(f_data)	
+
+	__init__(server_name, port_number, c_params):
+		super().__init__(server_name, port_number)
 		connection_params = {
 			"account": '"' + c_params['account'] + '"',
 			"database": '"' + c_params['database'] + '"',
@@ -28,10 +25,10 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 			"password": '"' + c_params['password'] + '"' 
 		}
 		new_session = Session.builder.configs(connection_params).create()
+
+	#Handle GET requests
+	def do_GET(self):
 		arr_pdfdocs = new_session.sql("select docname, docdescription, docdate, build_scoped_file_url(doclocation) from pdfdocs").collect()
-#		my_db = MySQLdb.connect(host="", user="", passwd="", db="")
-#		cursor = my_db.cursor()
-#		cursor.execute("SELECT * FROM userInfo")
 		q_components = dict(qc.split("=") for qc in urlparse(self.path).query.split("&"))
 		print q_components["outputMode"]
 		i = 0
@@ -76,30 +73,20 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 
 	def do_POST(self):
 	# My Post Code will go here
-#		my_db = MySQLdb.connect(host="", user="", passwd="", db="")
-#		cursor = my_db.cursor()
-#		cursor.execute("SELECT * FROM userInfo")
 		myForm = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'],})
-		#for item in myForm.list:
-		#	print("%s" % (item))
 		print("%s %s %s %s" % (myForm.getvalue("fld_fname"), myForm.getvalue("fld_lname"), myForm.getvalue("fld_middle"), myForm.getvalue("fld_bioURL")))
-#		mySQLinsert = "INSERT INTO userInfo (firstName, lastName, middleName, bioLocURL) VALUES ('%s', '%s', '%s', '%s')" % (myForm.getvalue("fld_fname"), myForm.getvalue("fld_lname"), myForm.getvalue("fld_middle"), myForm.getvalue("fld_bioURL"))
-#		num_rows_inserted = cursor.execute(mySQLinsert)
-#		my_db.commit()
-#		my_db.close()
 		self.wfile.write(bytes(str(num_rows_inserted), "utf-8"))
 		self.send_response(200)
-		# new_destination = '%s%s'%('http://devwww', self.path)
-		# print("%s"%(os.getcwd()))
-		# print("%s |---| %s"% (self.path, new_destination))
-		# self.send_header('Location', new_destination)
 		self.end_headers()
 		return
 
 try:
-    server = HTTPServer(('', PORT_NUMBER), coeSnowDemoHandler)
-    print( 'Started httpserver on port %s ' % PORT_NUMBER)
-    server.serve_forever()
+	with open('connection_params.json', 'r') as f_params:
+		f_data=f_params.read()
+	c_params = json.loads(f_data)	
+	server = HTTPServer(('', PORT_NUMBER, c_params), coeSnowDemoHandler)
+	print( 'Started httpserver on port %s ' % PORT_NUMBER)
+	server.serve_forever()
 
 except KeyboardInterrupt:
     print( 'Kill signal received.  Terminiating server...')

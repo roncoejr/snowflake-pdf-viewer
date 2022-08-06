@@ -54,11 +54,11 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 			self.wfile.write(bytes("</head>", "utf-8"))
 			self.wfile.write(bytes("<body><center>", "utf-8"))
 			self.wfile.write(bytes("<table border=1 cellpadding=4>", "utf-8"))
-			self.wfile.write(bytes("<tr><th>personID</th><th>Document Name</th><th>Description</th><th>Date</th><th>URL</th></tr>", "utf-8"))
+			self.wfile.write(bytes("<tr><th>documentName</th><th>documentDescription</th><th>documentDate</th><th>documentLink</th></tr>", "utf-8"))
 			while(i < len(arr_pdfdocs)):
 				print("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", (arr_pdfdocs[i][0], arr_pdfdocs[i][1], arr_pdfdocs[i][2], arr_pdfdocs[i][3]))
-				rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2].strftime("%Y-%m-%d") + "</td><td>" + arr_pdfdocs[i][3] + "</td></tr>"
-				i += 1
+				rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2].strftime("%Y-%m-%d") + "</td><td><a href=" + '"' + arr_pdfdocs[i][3] + '"' + ">" + arr_pdfdocs[i][0] + "</a></td></tr>"
+				i += 1 
 				self.wfile.write(bytes(rowInfo, "utf-8"))
 			self.wfile.write(bytes("</table></center>", "utf-8"))
 			self.wfile.write(bytes("</body>", "utf-8"))

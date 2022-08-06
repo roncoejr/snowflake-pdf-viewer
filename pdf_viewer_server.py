@@ -14,23 +14,31 @@ OUTPUT_MODE = 'json'
 
 class coeSnowDemoHandler(BaseHTTPRequestHandler):
 
-	__init__(server_name, port_number, c_params):
-		super().__init__(server_name, port_number)
+	def getSession(self):
+		with open('connect_params.json', 'r') as f_params:
+			f_data=f_params.read()
+		c_params = json.loads(f_data)	
 		connection_params = {
-			"account": '"' + c_params['account'] + '"',
-			"database": '"' + c_params['database'] + '"',
-			"schema": '"' + c_params['schema'] + '"',
-			"role": '"' + c_params['role'] + '"',
-			"user": '"' + c_params['user'] + '"',
-			"password": '"' + c_params['password'] + '"' 
+			"account": c_params['ACCOUNT'],
+			"database": c_params['DATABASE'],
+			"schema": c_params['SCHEMA'],
+			"role": c_params['ROLE'],
+			"user": c_params['USER'],
+			"password": c_params['PASSWORD'],
+			"warehouse": c_params['WAREHOUSE']
 		}
+		print("Session should have been established")
 		new_session = Session.builder.configs(connection_params).create()
+		t_arr = new_session.sql("select docname, docdescription, docdate, build_scoped_file_url(@pdfdocs, doclocation) from pdfdocs").collect()
+		return t_arr
 
 	#Handle GET requests
 	def do_GET(self):
-		arr_pdfdocs = new_session.sql("select docname, docdescription, docdate, build_scoped_file_url(doclocation) from pdfdocs").collect()
+		arr_pdfdocs = self.getSession()
+		print("Should have created an array")
 		q_components = dict(qc.split("=") for qc in urlparse(self.path).query.split("&"))
-		print q_components["outputMode"]
+		print("splitting url components")
+		print(q_components["outputMode"])
 		i = 0
 		if q_components:
 			OUTPUT_MODE = q_components["outputMode"]
@@ -38,7 +46,7 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 			self.send_response(200)
 			self.send_header('Content-type', 'text/html')
 			self.end_headers()
-			self.wfile.write(bytes("<!DOCTYPE html"), "utf-8")
+			self.wfile.write(bytes("<!DOCTYPE html", "utf-8"))
 			self.wfile.write(bytes("<html>", "utf-8"))
 			self.wfile.write(bytes("<head>", "utf-8"))
 			self.wfile.write(bytes("<title>The PDF Document (Policy) Library", "utf-8"))
@@ -47,9 +55,9 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 			self.wfile.write(bytes("<body><center>", "utf-8"))
 			self.wfile.write(bytes("<table border=1 cellpadding=4>", "utf-8"))
 			self.wfile.write(bytes("<tr><th>personID</th><th>Document Name</th><th>Description</th><th>Date</th><th>URL</th></tr>", "utf-8"))
-			while(i < len(arr_pdfdocs):
+			while(i < len(arr_pdfdocs)):
 				print("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", (arr_pdfdocs[i][0], arr_pdfdocs[i][1], arr_pdfdocs[i][2], arr_pdfdocs[i][3]))
-				rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2] + "</td><td>" + arr_pdfdocs[i][3] + "</td></tr>"
+				rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2].strftime("%Y-%m-%d") + "</td><td>" + arr_pdfdocs[i][3] + "</td></tr>"
 				i += 1
 				self.wfile.write(bytes(rowInfo, "utf-8"))
 			self.wfile.write(bytes("</table></center>", "utf-8"))
@@ -61,9 +69,9 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 			self.send_header('Content-type', 'application/json')
 			self.end_headers()
 			self.wfile.write(bytes("{", "utf-8"))
-			while(i < len(arr_pdfdocs):
+			while(i < len(arr_pdfdocs)):
 				pdfdocHeader = '"pdfdocEntry" : {'
-				self.wfile.write(bytes(personHeader, "utf-8"))
+				self.wfile.write(bytes(pdfdocHeader, "utf-8"))
 				rowInfo = '"docname" : "%s", "docdescription" : "%s", "docdate" : "%s", "docURL" : "%s"' % (arr_pdfdocs[i][0], arr_pdfdocs[i][1], arr_pdfdocs[i][2], arr_pdfdocs[i][3])
 				self.wfile.write(bytes(rowInfo, "utf-8"))
 				self.wfile.write(bytes("},", "utf-8"))
@@ -81,10 +89,7 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 		return
 
 try:
-	with open('connection_params.json', 'r') as f_params:
-		f_data=f_params.read()
-	c_params = json.loads(f_data)	
-	server = HTTPServer(('', PORT_NUMBER, c_params), coeSnowDemoHandler)
+	server = HTTPServer(('', PORT_NUMBER), coeSnowDemoHandler)
 	print( 'Started httpserver on port %s ' % PORT_NUMBER)
 	server.serve_forever()
 

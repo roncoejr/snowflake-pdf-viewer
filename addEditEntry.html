@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Add or Edit User Information</title>
+        <link rel="stylesheet" type="text/css" href="styles/css/form.css">
+        <script src="./js/api_driver.js" lang="javascript">
+        </script>
+    </head>
+    <body class="inputForm">
+        <center>
+            <div id="div_inputForm" name="div_inputForm" class="inputForm">
+                <form id="frm_AddEdit" name="frm_AddEdit" method="POST" action="m_apiJazzDemoPostRequests()">
+                    <table>
+                        <th><td></td><td></td></th>
+                        <tr><td align="RIGHT">First Name:</td><td><input type="text" id="fld_fname" name="fld_fname"></td></tr>
+                        <tr><td align="RIGHT">Middle:</td><td><input type="text" id="fld_middle" name="fld_middle"></td></tr>
+                        <tr><td align="RIGHT">Last Name:</td><td><input type="text" id="fld_lname" name="fld_lname"></td></tr>
+                        <tr><td align="RIGHT">Biography URL:</td><td><input type="text" id="fld_bioURL" name="fld_bioURL"></td></tr>
+                        <tr><td align="RIGHT"></td><td><button type="reset" name="btn_cancel" id="btn_cancel" value="CANCEL">CANCEL</button> <input type="button" name="btn_submit" id="btn_submit" value="SUBMIT" onclick="m_apiJazzDemoPostRequests()"></td><td><input id="btn_userList" name="btn_userList" type="button" value="User List" onclick="m_apiJazzDemoGetRequests()"/></td><td><input name="fld_outputMode" id="fld_outputMode1" type="radio" value="html"><label for="fld_outputMode1">html</label><br><input name="fld_outputMode" id="fld_outputMode2" type="radio" value="json"><label for="fld_outputMode2">json</label></td>
+                    </table>
+                </form>
+            </div>
+        </center>
+        <div id="div_userList" name="div_userList" class="userList">
+
+        </div>
+    </body>
+</html>

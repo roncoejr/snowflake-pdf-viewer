@@ -1,0 +1,6 @@
+name: snowpark
+channels:
+ - javascript
+dependencies:
+ - python=3.8
+ - pip

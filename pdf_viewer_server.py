@@ -29,7 +29,7 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 		}
 		print("Session should have been established")
 		new_session = Session.builder.configs(connection_params).create()
-		t_arr = new_session.sql("select docname, docdescription, docdate, build_scoped_file_url(@pdfdocs, doclocation) from pdfdocs").collect()
+		t_arr = new_session.sql("select docname, docdescription, docdate, get_presigned_url(@pdfdocs, docname) from pdfdocs").collect()
 		return t_arr
 
 	#Handle GET requests
@@ -54,10 +54,13 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 			self.wfile.write(bytes("</head>", "utf-8"))
 			self.wfile.write(bytes("<body><center>", "utf-8"))
 			self.wfile.write(bytes("<table border=1 cellpadding=4>", "utf-8"))
-			self.wfile.write(bytes("<tr><th>documentName</th><th>documentDescription</th><th>documentDate</th><th>documentLink</th></tr>", "utf-8"))
+			self.wfile.write(bytes("<tr><th>documentName</th><th>documentDescription</th><th>documentDate</th><th>documentLink</th><th>documentPreview</th></tr>", "utf-8"))
 			while(i < len(arr_pdfdocs)):
 				print("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", (arr_pdfdocs[i][0], arr_pdfdocs[i][1], arr_pdfdocs[i][2], arr_pdfdocs[i][3]))
-				rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2].strftime("%Y-%m-%d") + "</td><td><a href=" + '"' + arr_pdfdocs[i][3] + '"' + ">" + arr_pdfdocs[i][0] + "</a></td></tr>"
+				# rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2].strftime("%Y-%m-%d") + "</td><td><a href=" + '"' + arr_pdfdocs[i][3] + '"' + ">" + arr_pdfdocs[i][0] + "</a></td></tr>"
+				rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2].strftime("%Y-%m-%d") + "</td><td><a href=" + '"javascript:window.open(' + "'" + arr_pdfdocs[i][3] + "'" + ')"' + ">" + arr_pdfdocs[i][0] + "</a></td><td><iframe onload=" + '"URL.createObjectURL(' + arr_pdfdocs[i][3] + ')" '  + "src=" + '"javascript:URL.createObjectURL(' + arr_pdfdocs[i][3] + ')"' + " width=" + '"320" height="240" type="applicatiopn/pdf"></iframe></td></tr>'
+				#rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2].strftime("%Y-%m-%d") + "</td><td><a href=" + '"javascript:window.open(' + "'" + arr_pdfdocs[i][3] + "'" + ')"' + ">" + arr_pdfdocs[i][0] + "</a></td><td><iframe src=" + '"' + arr_pdfdocs[i][3] + '"' + " width=" + '"320" height="240" type="applicatiopn/pdf"></iframe></td><td><iframe type="application/pdf" src="pdfOne.pdf" width="320" height="240"></iframe></td></tr>'
+				#rowInfo = "<tr><td>" + str(arr_pdfdocs[i][0]) + "</td><td>" + arr_pdfdocs[i][1] + "</td><td>" + arr_pdfdocs[i][2].strftime("%Y-%m-%d") + "</td><td><a href=" + '"javascript:window.open(' + "'" + arr_pdfdocs[i][3] + "'" + ')"' + ">" + arr_pdfdocs[i][0] + "</a></td></tr>"
 				i += 1 
 				self.wfile.write(bytes(rowInfo, "utf-8"))
 			self.wfile.write(bytes("</table></center>", "utf-8"))

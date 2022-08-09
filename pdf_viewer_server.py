@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from http.server import BaseHTTPRequestHandler,HTTPServer
+from http.server import BaseHTTPRequestHandler,HTTPServer,SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from snowflake.snowpark import Session
 import os
@@ -35,11 +35,15 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 
 	#Handle GET requests
 	def do_GET(self):
+		print(self.path)
+		#if self.path == "/tools.js":
+		#	return SimpleHTTPRequestHandler.do_GET(self)
 		arr_pdfdocs = self.getSession()
 		print("Should have created an array")
 		q_components = dict(qc.split("=") for qc in urlparse(self.path).query.split("&"))
 		print("splitting url components")
 		print(q_components["outputMode"])
+		print("Received path: ")
 		i = 0
 		if q_components:
 			OUTPUT_MODE = q_components["outputMode"]
@@ -53,11 +57,14 @@ class coeSnowDemoHandler(BaseHTTPRequestHandler):
 			self.wfile.write(bytes("<title>The PDF Document (Policy) Library", "utf-8"))
 			self.wfile.write(bytes("</title>", "utf-8"))
 			self.wfile.write(bytes('<script language="javascript"> ', "utf-8"))
-			framestring = 'mywin.document.write("<iframe src=' + "myFile" + '></iframe>")'
-			self.wfile.write(bytes('function m_showPDF(myFile) { mywin = window.open(myFile, "_blank"); ' +  framestring + '; mywin.location = myFile; }', "utf-8"))
+			blobstring = 'var newBlob = new Blob(fetch(myFile), {type: "application/octetstream"}); myLink = URL.createObjectURL(newBlob); '
+			framestring = 'mywin.document.write("<iframe id=theFrame name=theFrame></iframe>")'
+			varstring = '"theFrame"'
+			#self.wfile.write(bytes('function m_showPDF(myFile) { mywin = window.open("", "_blank"); ' +  blobstring + '; mywin.document.getElementById(' + varstring + ').src = myLink; }', "utf-8"))
+			self.wfile.write(bytes('function m_showPDF(myFile) { ' + blobstring + ' ; mywin = window.open(myLink, "_self"); }', "utf-8"))
 			self.wfile.write(bytes("</script>", "utf-8"))
-			self.wfile.write(bytes('<script src="./tools.js" language="javascript">', "utf-8"))
-			self.wfile.write(bytes("</script>", "utf-8"))
+			#self.wfile.write(bytes('<script src="./tools.js" language="javascript">', "utf-8"))
+			#self.wfile.write(bytes("</script>", "utf-8"))
 			self.wfile.write(bytes("</head>", "utf-8"))
 			self.wfile.write(bytes("<body><center>", "utf-8"))
 			self.wfile.write(bytes("<table border=1 cellpadding=4>", "utf-8"))
